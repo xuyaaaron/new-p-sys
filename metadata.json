@@ -1,0 +1,5 @@
+{
+  "name": "电影票打印系统V3.2",
+  "description": "Professional ticket printing system V3.0. Baseline positions locked for: 27mm QR Code, 30pt text, and precise mm-based layout.",
+  "requestFramePermissions": []
+}
