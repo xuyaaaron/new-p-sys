@@ -1,47 +1,38 @@
-name: Deploy static content to Pages
+name: Build and Deploy Printer to Tencent Cloud
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
-
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set up Node
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: '20'
           cache: 'npm'
-      - name: Install dependencies
-        run: npm ci
-      - name: Build
-        run: npm run build
+
+      - name: Install and Build
+        run: |
+          npm ci
+          npm run build
         env:
-          # 如果你有用到 API Key，这里需要配置 Secret，否则会为空
-          # 请去 GitHub 仓库 Settings -> Secrets and variables -> Actions 中添加 GEMINI_API_KEY
+          # 如果你有用到 API Key，这里需要配置 Secret
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to Tencent Cloud via SSH
+        uses: appleboy/scp-action@v0.1.7
         with:
-          # Upload dist folder
-          path: './dist'
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
+          host: 110.40.129.184
+          username: root
+          password: ${{ secrets.SERVER_PASSWORD }}
+          source: "dist/*"
+          target: "/usr/share/nginx/html/printer"
+          strip_components: 1
